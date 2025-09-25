@@ -89,30 +89,39 @@ We screened assemblies for AMR genes using ABRicate (ResFinder DB).
 ![First MultiQC](Images/multiqc1_1.png)
 
 This plot shows the total number of reads per sample. Blue bars represent unique reads, while black bars indicate duplicates. Most samples have sufficient coverage for downstream assembly, although variability between samples is visible
+
 ![First MultiQC](Images/multiqc1_2.png)
 
 Average read quality is generally high (>30, green zone), indicating reliable sequencing. A slight drop in quality is observed toward the end of the reads, which is typical for Illumina data.
+
 ![First MultiQC](Images/multiqc1_5.png)
 
 The GC distribution peaks around ~38–40%, consistent with the genome of Listeria monocytogenes. Secondary peaks may suggest contamination or sequencing bias in some samples.
+
 ![First MultiQC](Images/multiqc1_3.png)
 
 Most reads exhibit high Phred scores (>30). Very few reads fall below the acceptable threshold, confirming the dataset is overall high quality.
+
 ![First MultiQC](Images/multiqc1_4.png)
 
 The proportions of A, T, G, and C stabilize across the read length after the initial bases. The small imbalance at the beginning is typical of Illumina priming and does not indicate a major problem. 
+
 ![First MultiQC](Images/multiqc1_6.png)
 
 Shows the percentage of undetermined bases ("N") across all read positions. The low values confirm that base calling was accurate with minimal ambiguity.
+
 ![First MultiQC](Images/multiqc1_9.png)
 
 Highlights sequences that appear more frequently than expected. Only a very small fraction (<1% of reads) are overrepresented, suggesting minimal contamination or technical artifacts.
+
 ![First MultiQC](Images/multiqc1_10.png)
 
 Displays the presence of sequencing adapter sequences. The increasing signal at the end of the reads indicates some adapter contamination, which trimming tools (like fastp) are designed to remove.
+
 ![First MultiQC](Images/multiqc1_7.png)
 
 Plots the read length across all samples. The sharp peak at ~300 bp reflects uniform sequencing library preparation, as expected for Illumina paired-end reads.
+
 ![First MultiQC](Images/multiqc1_8.png)
 
 Indicates the percentage of duplicated reads per library. Most sequences have low duplication, but some samples show higher duplication levels, which can result from high coverage or PCR bias.
@@ -121,3 +130,5 @@ Indicates the percentage of duplicated reads per library. Most sequences have lo
 ![First MultiQC](Images/multiqc1_11.png)
 
 This heatmap provides an overview of quality metrics across all 200 samples. Each column corresponds to a QC module (e.g., per-base quality, GC content, duplication levels), and each row represents one sample. Green indicates passing QC, yellow means warnings, and red marks failures. Overall, most samples passed the key metrics, with warnings or failures mainly in GC content and duplication, which are common for bacterial genomes.
+
+### Second MultiQC
