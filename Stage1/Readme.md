@@ -81,3 +81,7 @@ Due to genome size, some contigs were split before blasting.
 
 ### Antimicrobial Resistance Profiling
 We screened assemblies for AMR genes using ABRicate (ResFinder DB).
+
+
+## Results
+##
