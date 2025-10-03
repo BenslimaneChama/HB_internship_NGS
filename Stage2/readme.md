@@ -215,3 +215,78 @@ We listed the most important genes, and saved them, so we couldvisualise them an
 
 ## Part 3 : Results 
 
+### Quality control (FastQC and MultiQC)
+
+To assess the quality of the raw sequencing data, we used FastQC for each sample, followed by MultiQC to consolidate and summarize the results.
+
+The main quality control results are presented below:
+
+#### Mean Quality Scores
+
+The distribution of quality scores (Phred score) across the length of the reads indicates that:
+
+  - The values remain very high (average > 35), which corresponds to an accuracy of > 99.9%.
+  - The reads are therefore reliable for downstream analysis (alignment and counting).
+![Mean Quality Scores](Images/multiqc_1_2.png)
+
+#### Sequence Duplication Levels
+
+The duplication rate is relatively high for several samples.
+Which is expected in RNA-seq, as certain highly expressed genes (e.g., housekeeping genes, ribosomal genes) produce excess reads.
+After normalization (in DESeq2), this bias will not have a major impact on differential expression analyses.
+
+![Sequence Duplication Levels](Images/multiqc_1_4.png)
+
+#### Per Sequence GC Content
+
+The distribution og GC% per sample is globally in a belly format and centered betwwn 40% and 50% which is normal for humans. We can also observe some light deviations but they are still in the limit which is very good and accepted for data from RNA-Seq.
+
+![Per Sequence GC Content](Images/multiqc_1_1.png)
+
+#### Adapter Content
+There is a presence of adapters that was detected, but in a small amount, which justify why we choosed to trim with fastp before going onto further analysis.
+
+![Per Sequence GC Content](Images/multiqc_1_5.png)
+
+#### Global View 
+
+Globally in this figure we can see that the majority of criterias are green which shos the global quality of the dataset and it is pretty satisfactng.
+However there is modules that appears orange or even red which means respectfully to be cautions and some errors, but this observations are RNA-seq classic data where some transics too aboundount starts to duplicate.
+
+![Global View ](Images/multiqc_1_3.png)
+
+### Second Quality control (Fastp and MultiQC)
+
+After quality filtering with Fastp, we obtained between 42 and 62 million reads per sample, with more than 99% passing filters.
+The GC content was stable around 50%, consistent with human RNA-seq data.
+Duplication levels were generally low (<20%) for most samples, with only one sample showing slightly elevated duplication (39%).
+The percentage of residual adapter contamination was minimal (<2%).
+
+These results confirm that the sequencing data is of high quality and suitable for downstream analysis.
+
+![Fastp and MultiQC](Images/multiqc_2_.png)
+
+### IGV visualization
+
+The Integrative Genomics Viewer (IGV) is a tool that allows the visualization of sequencing reads aligned to a reference genome.
+Here we show an example of visualization for one healthy sample (SRR33243171) :
+
+![Example of healthy](Images/Example_of_healthy.png)
+
+and one unhealthy sample (SRR33243164)
+
+![Example of Unhealthy](Images/Example_of_UNhealthy.png)
+
+In both cases, we can clearly see the annotated mitochondrial genes (e.g., ND1, ND2, COX1, ATP6, ND5, CYTB) as well as the coverage signal (grey peaks) along the chromosome.
+
+- Healthy sample (Figure 1): the reads align uniformly with very few mismatches.
+
+- Unhealthy sample (Figure 2): several mismatches (red marks) appear across different mitochondrial genes.
+
+This simple comparison illustrates the differences in alignment between healthy and unhealthy conditions.
+
+### PCA
+
+Principal Component Analysis (PCA) was performed to explore the variability between samples. Each point represents one sample, grouped by condition (SHC, FHC, FBD, SBD). The first two components (PC1 and PC2) explain most of the variance in the data.
+
+This plot provides an overview of how samples cluster according to their group and age.
