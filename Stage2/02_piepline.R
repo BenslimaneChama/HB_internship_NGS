@@ -12,7 +12,7 @@ library(ggplot2)
 fc <- read.delim("gene_counts.txt", comment.char = "#", check.names = FALSE)
 head(fc)
 
-# Load counts and metadata
+# Load counts and metadata (new version with Group: FBD, SBD, FHC, SHC)
 c_e_count <- read.delim('gene_counts.txt', header = T)
 c_e_meta <- read.delim('metadata.tsv', header = T, stringsAsFactors = T)
 
@@ -37,19 +37,16 @@ head(raw_counts)
 # ===============================
 dds <- DESeqDataSetFromMatrix(countData = raw_counts,
                               colData = c_e_meta,
-                              design = ~State)
+                              design = ~ Age + Group)
 
 # Preview metadata inside DESeq2 object
 dds
 dds$SRA.Accession.Number
 dds$Age
-dds$State
+dds$Group   
 
-# Set Healthy_control as reference group
-dds$State <- relevel(dds$State, ref = "Healthy_control")
-
-# Full design: include Age as covariate + State
-design(dds) <- ~ Age + State
+# Set reference group (here: SHC = sporadic healthy control)
+dds$Group <- relevel(dds$Group, ref = "SHC")
 
 # ===============================
 # 5. Run DESeq2 pipeline
@@ -60,90 +57,76 @@ dds <- DESeq(dds)
 # 6. PCA analysis (sample clustering)
 # ===============================
 vsd <- vst(dds, blind = TRUE)
-pcaData <- plotPCA(vsd, intgroup = c("State", "Age"), returnData = TRUE)
+pcaData <- plotPCA(vsd, intgroup = c("Group", "Age"), returnData = TRUE)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 
-ggplot(pcaData, aes(PC1, PC2, color = State, shape = State, size = Age)) +
+ggplot(pcaData, aes(PC1, PC2, color = Group, shape = Group, size = Age)) +
   geom_point(alpha = 0.8) +
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
-  ggtitle("PCA of RNA-seq samples") +
+  ggtitle("PCA of RNA-seq samples by Group") +
   scale_size_continuous(range = c(3,6)) +
   theme_minimal()
 
 # ===============================
-# 7. Differential expression analysis
+# 7. Differential expression analyses
 # ===============================
-# Using FDR threshold = 0.05
-final_res <- results(dds, contrast = c("State", "Bipolar_disorder", "Healthy_control"), alpha = 0.05)
+# Three contrasts of interest:
+res_SBDvsSHC <- results(dds, contrast = c("Group", "SBD", "SHC"), alpha = 0.05)
+res_FBDvsFHC <- results(dds, contrast = c("Group", "FBD", "FHC"), alpha = 0.05)
+res_SBDvsFBD <- results(dds, contrast = c("Group", "SBD", "FBD"), alpha = 0.05)
 
-# Inspect results
-head(final_res)
-summary(final_res)
-sum(final_res$padj < 0.05, na.rm = TRUE)
-
+# summary 
+summary(res_SBDvsSHC)
+sum(res_SBDvsSHC$padj < 0.05, na.rm = TRUE)
+sum(res_FBDvsFHC$padj < 0.05, na.rm = TRUE)
+sum(res_SBDvsFBD$padj < 0.05, na.rm = TRUE)
 # ===============================
-# 8. Distribution of p-values
+# 8. Volcano plot function
 # ===============================
-plot(density(x = na.omit(final_res$pvalue)))
+plot_volcano <- function(res, title){
+  plot(x = res$log2FoldChange, 
+       y = -log10(res$pvalue), 
+       cex = 0.25, pch = 19, col = 'grey',
+       ylab = '-log10(p-value)',
+       xlab = 'Log2 Fold Change')
+  abline(v = c(-1, 1), lty = 2)  
+  abline(h = -log10(0.05), lty = 2)  
+  up <- subset(res, padj < 0.05 & log2FoldChange > 1)
+  down <- subset(res, padj < 0.05 & log2FoldChange < -1)
+  points(up$log2FoldChange, -log10(up$pvalue), col = "red", pch = 19)
+  points(down$log2FoldChange, -log10(down$pvalue), col = "blue", pch = 19)
+  mtext(title)
+}
 
-# ===============================
-# 9. Volcano plot
-# ===============================
-plot(x = final_res$log2FoldChange, 
-     y = -log10(final_res$pvalue), 
-     cex = 0.25,
-     pch = 19, 
-     col = 'grey',
-     ylab = '-log10(p-value)',
-     xlab = 'Log2 Fold Change')
-
-# Add thresholds (log2FC ±1, FDR < 0.05)
-abline(v = c(-1, 1), lty = 2)  
-abline(h = -log10(0.05), lty = 2)  
-
-# Highlight significant genes
-upregulated <- subset(final_res, padj < 0.05 & log2FoldChange > 1)
-downregulated <- subset(final_res, padj < 0.05 & log2FoldChange < -1)
-
-points(upregulated$log2FoldChange,
-       -log10(upregulated$pvalue),
-       cex = 0.5, col = 'red', pch = 19)
-
-points(downregulated$log2FoldChange,
-       -log10(downregulated$pvalue),
-       cex = 0.5, col = 'blue', pch = 19)
-
-mtext('Volcano plot (FDR < 0.05, |LFC| > 1)')
+# Volcano plots for each comparison
+plot_volcano(res_SBDvsSHC, "SBD vs SHC")
+plot_volcano(res_FBDvsFHC, "FBD vs FHC")
+plot_volcano(res_SBDvsFBD, "SBD vs FBD")
 
 # ===============================
-# 10. Heatmap of DEGs
+# 9. Heatmap of DEGs
 # ===============================
-# Use only significantly differentially expressed genes
+# Heatmap
 vsd <- vst(dds, blind = FALSE)
 mat <- assay(vsd)
 
-sel <- with(as.data.frame(final_res),
+sel <- with(as.data.frame(res_SBDvsSHC),
             which(!is.na(padj) & padj < 0.05 & abs(log2FoldChange) > 1))
 
-# If too few DEGs, take top 300 most variable genes
 if (length(sel) < 30) {
   v <- rowVars(mat)
   sel <- head(order(v, decreasing = TRUE), 300)
 }
 
 mat_sub <- mat[sel, ]
+mat_sub <- t(scale(t(mat_sub)))  # z-score
 
-# Standardize (z-score per gene)
-mat_sub <- t(scale(t(mat_sub)))
-
-# Sample annotations
-ann_col <- as.data.frame(colData(dds)[, c("State","Age")])
+ann_col <- as.data.frame(colData(dds)[, c("Group","Age")])
 ann_colors <- list(
-  State = c(Bipolar_disorder = "tomato", Healthy_control = "steelblue")
+  Group = c(SBD = "tomato", FBD = "orange", SHC = "steelblue", FHC = "skyblue")
 )
 
-# Draw heatmap
 pheatmap(mat_sub,
          cluster_rows = TRUE,
          cluster_cols = TRUE,
@@ -154,9 +137,10 @@ pheatmap(mat_sub,
          scale = "none")
 
 # ===============================
-# 11. Export gene list for enrichment (ShinyGO)
+# 10. Export gene lists for enrichment
 # ===============================
-gene_list <- rownames(subset(final_res, padj < 0.1 & abs(log2FoldChange) > 1))
-write.csv(gene_list, 'gene_list.csv')
+write.csv(rownames(subset(res_SBDvsSHC, padj < 0.05 & abs(log2FoldChange) > 1)), "genes_SBDvsSHC.csv")
+write.csv(rownames(subset(res_FBDvsFHC, padj < 0.05 & abs(log2FoldChange) > 1)), "genes_FBDvsFHC.csv")
+write.csv(rownames(subset(res_SBDvsFBD, padj < 0.05 & abs(log2FoldChange) > 1)), "genes_SBDvsFBD.csv")
 
-# Next step: upload gene_list.csv to ShinyGO or another enrichment tool
+# Next step: upload these gene lists to ShinyGO / Reactome / GSEA
