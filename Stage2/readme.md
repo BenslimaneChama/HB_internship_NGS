@@ -290,3 +290,49 @@ This simple comparison illustrates the differences in alignment between healthy 
 Principal Component Analysis (PCA) was performed to explore the variability between samples. Each point represents one sample, grouped by condition (SHC, FHC, FBD, SBD). The first two components (PC1 and PC2) explain most of the variance in the data.
 
 This plot provides an overview of how samples cluster according to their group and age.
+
+![PCA](Images/pca.png)
+
+### Volcano Plots 
+
+Volcano plots are used to visualize the results of differential expression analysis.
+On the x-axis we have the log2 fold change (up- or down-regulation of genes), and on the y-axis we have the -log10 p-value (statistical significance).
+
+- Red points represent significantly upregulated genes.
+- Blue points represent significantly downregulated genes.
+- Grey points are genes without significant changes.
+
+![Volcano Plot](Images/FBDvsFHC.png)
+
+In the comparison FBD vs FHC, we observe a large number of both up- and downregulated genes, showing strong differences.
+
+![Volcano Plot](Images/SBDvsFBD.png)
+
+In SBD vs FBD, the number of differentially expressed genes is lower, but some remain significant.
+
+![Volcano Plot](Images/SBDvsSHC.png)
+
+In SBD vs SHC, we see fewer changes, but still clear upregulated and downregulated genes.
+
+### Heatmap
+
+The heatmap shows the expression patterns of the most variable or significantly differentially expressed genes across samples.
+
+![Heatmap](Images/heatmap.png)
+
+- Each row represents a gene, and each column represents a sample.
+
+- The colors indicate relative expression levels: red = higher expression, blue = lower expression.
+
+- The top bars show sample annotations by age and group (SBD, FBD, SHC, FHC).
+
+### KEGG Pathway Analysis (ShinyGo Application)
+
+KEGG pathway analysis was used to explore the biological pathways enriched among the differentially expressed genes. This allows us to see how dysregulated genes are involved in cellular functions and signaling.
+The figure below shows an example for the Calcium signaling pathway in the comparison FBD vs FHC.
+
+![KEGG](Images/KEGG_FBD_FHC.png)
+
+- The red boxes highlight genes that are significantly differentially expressed in our dataset.
+- This pathway is important for processes such as cell communication, metabolism, and neuronal signaling.
+This result illustrates how gene expression changes in FBD may impact specific biological pathways compared to healthy controls.
